@@ -1,8 +1,8 @@
 import numpy as np
 import random as rd
 #该样本三个特征值分别为平均每天学习时间（0-8h）/上课出勤率（0-1）/模拟考成绩（40-100）
-train_scale = 80000
-test_scale = 20000
+train_scale = 8000
+test_scale = 2000
 learning_time_influence = 5 #with_mark 0-40
 attendance_influence = 40 #with_mark 0-40
 simulate_test_influence = 0.2 #with_mark 8-20

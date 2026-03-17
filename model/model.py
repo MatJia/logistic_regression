@@ -4,11 +4,15 @@ import random as rnd
 import numpy as np
 import math
 
-learning_rate = 0.001
+learning_rate = 0.05
 feature_scaling = [] #统一scaling到-1 - 1
 weight_temp = generator.Temperature #生成测试集时降温，则最后结果权重也会降温，在这里引入升温系数
 num_of_weight = 3 #当前已有权重数量，构造w矩阵
 epoch = 100000 #Maximum train round
+learning_time_influence =  generator.learning_time_influence#with_mark 0-40
+attendance_influence = generator.attendance_influence#with_mark 0-40
+simulate_test_influence = generator.simulate_test_influence #with_mark 8-20
+real_weight = [learning_time_influence, attendance_influence, simulate_test_influence]
 
 def ini_sets() -> None:
     generator.generate_sets()
@@ -25,7 +29,7 @@ def bce_loss(p: float, y: float):
 def generate_ini_weight(n: int) -> list:
     lst = list()
     for i in range(n):
-        q = rnd.randint(-5,5)
+        q = rnd.uniform(-1,1)
         lst.append(q)
     return lst
 
@@ -58,17 +62,29 @@ if __name__ == "__main__":
     feature_scaling = f_scaling(X)
     for j in range(len(feature_scaling)):
         X[:,j] /= feature_scaling[j]
-        print(X[:,j])
+        #print(X[:,j])
 
     cur_w = np.array(generate_ini_weight(num_of_weight))
     cur_b = rnd.randint(-5,5)
 
     for i in range(epoch):
-        #print(f"current train round: {i}")
         #训练集全样本训练
-        total_error = 0
-        total_loss = 0
+        total_error = list()
+        total_loss = []
         for train_data, lable in zip(X, y):
             #print(train_data, lable)
             #z = x矩阵与w矩阵点积+b
             z = train_data @ cur_w + cur_b
+            p = sigma(z)
+            total_loss.append(bce_loss(p, lable))
+            total_error.append(p - lable)
+        #gradient descent
+        total_error = np.array(total_error).T
+        dw = (X.T @ total_error) / X.shape[0]
+        for idx in range(len(cur_w)):
+            cur_w[idx] -= learning_rate * dw[idx]
+        cur_b = cur_b - learning_rate * np.mean(total_error)
+        if i % 100 == 0:
+            print(f"round {i}, total_error: {np.mean(total_error)}, total_loss: {np.mean(total_loss)}, w: {cur_w / np.array(feature_scaling) * weight_temp}, b: {cur_b}")
+
+    print(f"final weight: {cur_w / np.array(feature_scaling) * weight_temp}, final b: {cur_b}, real weight:{real_weight}")
