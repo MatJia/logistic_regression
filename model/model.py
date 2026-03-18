@@ -51,7 +51,7 @@ def do_scaling(weight: np.array, scale_rate: list) -> None:
         weight[i] /= scale_rate
 
 if __name__ == "__main__":
-    ini_sets()
+    #ini_sets()
     train_file = pd.read_csv("../data/training_data.csv")
     test_file = pd.read_csv("../data/test_data.csv")
     X = train_file.iloc[:, :-1].to_numpy()
@@ -62,6 +62,7 @@ if __name__ == "__main__":
     feature_scaling = f_scaling(X)
     for j in range(len(feature_scaling)):
         X[:,j] /= feature_scaling[j]
+        T_X[:,j] /= feature_scaling[j]
         #print(X[:,j])
 
     cur_w = np.array(generate_ini_weight(num_of_weight))
@@ -86,5 +87,16 @@ if __name__ == "__main__":
         cur_b = cur_b - learning_rate * np.mean(total_error)
         if i % 100 == 0:
             print(f"round {i}, total_error: {np.mean(total_error)}, total_loss: {np.mean(total_loss)}, w: {cur_w / np.array(feature_scaling) * weight_temp}, b: {cur_b}")
+        if i % 1000 == 0:#accuracy
+            test_right, test_total = 0, 0
+            for test_data, test_lable in zip(T_X, T_y):
+                test_z = test_data @ cur_w + cur_b
+                test_p = sigma(test_z)
+                test_p = 1 if test_p >= 0.5 else 0
+                if test_p == test_lable:
+                    test_right += 1
+                test_total += 1
+            print(test_right, test_total)
+            print(f"{int(i/1000)}'th time accuracy: {float(test_right / test_total)}")
 
     print(f"final weight: {cur_w / np.array(feature_scaling) * weight_temp}, final b: {cur_b}, real weight:{real_weight}")

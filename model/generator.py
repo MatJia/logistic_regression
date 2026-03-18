@@ -19,9 +19,8 @@ def attendance_rate_generator() -> float:
     base_att = 1 if base_att > 1 else 0 if base_att < 0 else base_att
     return base_att
 
-def simulate_test_generator(learn_result: float) -> float:
-    base_score = (np.random.randn() + 10) * 7
-    base_score += learn_result * 2
+def simulate_test_generator() -> float:
+    base_score = (np.random.randn() + 10) * 8
     base_score = 100 if base_score > 100 else 40 if base_score < 40 else base_score
     return base_score
 
@@ -42,8 +41,11 @@ def generate_sets() -> None:
         for i in range(test_scale):
             l_mark = learning_time_generator()
             a_mark = attendance_rate_generator()
-            s_mark = simulate_test_generator(l_mark)
+            s_mark = simulate_test_generator()
             final_score = l_mark * learning_time_influence + a_mark * attendance_influence + s_mark * simulate_test_influence
             final_pass_prob = 1 / (1 + np.exp(-(final_score - mark_line) / Temperature))
             final_pass = rd.uniform(0, 1) < final_pass_prob
             file.write(f"{l_mark},{a_mark},{s_mark},{"1" if final_pass else "0"}\n")
+
+if __name__ == "__main__":
+    generate_sets()
